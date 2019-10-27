@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "908118791305",
+    "firebase_url": "https://geo-app-supanadit.firebaseio.com",
+    "project_id": "geo-app-supanadit",
+    "storage_bucket": "geo-app-supanadit.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908118791305:android:d230276ba7f053e3e9e258",
+        "android_client_info": {
+          "package_name": "com.supanadit.geo_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "908118791305-pif2888l3d7qs7hjqs4pkcbcc74ga10h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqOWFq6PaPeSIn14jcXSaTovDYU9S1tYU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "908118791305-pif2888l3d7qs7hjqs4pkcbcc74ga10h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
