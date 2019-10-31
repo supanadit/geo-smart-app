@@ -5,7 +5,8 @@ This is the Mobile Application for [Geo Smart System](https://github.com/supanad
 - Flutter
 
 ## Todo
-- Integration With Geo Smart System
+- Integration With Geo Smart System ( OK )
+- Documentation
 
 ## License
 Copyright 2019 Supan Adit Pratama

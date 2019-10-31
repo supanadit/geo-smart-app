@@ -12,7 +12,8 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:icon="@mipmap/ic_launcher"
-        android:label="geo_app">
+        android:label="Geo Smart App"
+        android:usesCleartextTraffic="true">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCjhBV5aq1gsTCYsr6QCCxYusFlBa3DEMs" />

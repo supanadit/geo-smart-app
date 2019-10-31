@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:background_location/background_location.dart';
 import 'package:flutter/material.dart';
+import 'package:geo_app/model/position.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 void main() => runApp(MyApp());
@@ -55,12 +56,23 @@ class _MyHomePageState extends State<MyHomePage> {
   double accuracy = 0.0;
   double bearing = 0.0;
   double speed = 0.0;
+  String message = "Connecting to Server";
+  bool _finish = false;
+  Position _position;
 
   @override
   void initState() {
     super.initState();
-
     BackgroundLocation.startLocationService();
+    message = "Connecting to Server";
+    Position.getPosition().then((position) {
+      setState(() {
+        _position = position;
+        _finish = this._position.isValid();
+      });
+    }, onError: (error) {
+      message = "Something wrong";
+    });
   }
 
   static final CameraPosition _kGooglePlex = CameraPosition(
@@ -71,33 +83,60 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: _kGooglePlex,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-          BackgroundLocation.getLocationUpdates((location) async {
-            setState(() {
-              this.latitude = location.latitude;
-              this.longitude = location.longitude;
-              this.accuracy = location.accuracy;
-              this.altitude = location.altitude;
-              this.bearing = location.bearing;
-              this.speed = location.speed;
-            });
-            final GoogleMapController controller = await _controller.future;
-            controller.animateCamera(
-              CameraUpdate.newCameraPosition(
-                new CameraPosition(
-                  target: LatLng(this.latitude, this.longitude),
-                  zoom: 19.151926040649414,
+      body: Stack(
+        children: <Widget>[
+          GoogleMap(
+            mapType: MapType.normal,
+            initialCameraPosition: _kGooglePlex,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+              BackgroundLocation.getLocationUpdates((location) async {
+                setState(() {
+                  this.latitude = location.latitude;
+                  this.longitude = location.longitude;
+                  this.accuracy = location.accuracy;
+                  this.altitude = location.altitude;
+                  this.bearing = location.bearing;
+                  this.speed = location.speed;
+
+                  if (this._position != null) {
+                    if (this._position.isValid()) {
+                      this._position.lat = this.latitude.toString();
+                      this._position.lng = this.longitude.toString();
+                      this._position.sendPosition();
+                    }
+                  }
+                });
+                // Make Camera Follow the Marker
+                // final GoogleMapController controller = await _controller.future;
+                // controller.animateCamera(
+                // CameraUpdate.newCameraPosition(
+                // new CameraPosition(
+                // target: LatLng(this.latitude, this.longitude),
+                // zoom: 19.151926040649414,
+                // ),
+                // ),
+                // );
+              });
+            },
+          ),
+          Visibility(
+            visible: !_finish,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black26.withOpacity(0.8),
+              ),
+              child: Center(
+                child: Text(
+                  message,
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
-            );
-          });
-        },
+            ),
+          )
+        ],
       ),
     );
   }
