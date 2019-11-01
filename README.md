@@ -1,3 +1,5 @@
+![Geo Smart Logo](http://supanadit.com/wp-content/uploads/2019/11/geo.png)
+
 # GEO Smart App
 This is the Mobile Application for [Geo Smart System](https://github.com/supanadit/geosmartsystem) and [Geo Smart Map](https://github.com/supanadit/geosmartmap)
 
