@@ -1,9 +1,9 @@
-class Response {
+class ResponseModel {
   String status;
 
-  Response({this.status});
+  ResponseModel({this.status});
 
-  Response.fromJson(Map<String, dynamic> json) {
+  ResponseModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
   }
 

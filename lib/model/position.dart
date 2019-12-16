@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:geo_app/config.dart';
 import 'package:geo_app/model/response.dart';
-import 'package:geo_app/model/unique_id.dart';
+import 'package:geo_app/model/unique_id_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,9 +41,9 @@ class Position {
       lng: "0.0",
     );
     if (spId == null) {
-      final response = await http.get(Config.api + "/unique/id");
+      final response = await http.get(Config.api + "/id/get/unique");
       if (response.statusCode == 200) {
-        position.id = UniqueId.fromJson(json.decode(response.body)).id;
+        position.id = UniqueIDModel.fromJson(json.decode(response.body)).id;
       } else {
         throw Exception("Something Error");
       }
@@ -56,14 +56,28 @@ class Position {
     return id != null;
   }
 
-  Future<Response> sendPosition() async {
-    Response result;
+  Future<ResponseModel> sendPosition() async {
+    ResponseModel result;
     final response = await http.post(
-      Config.api + "/set/point",
+      Config.api + "/point/set",
       body: json.encode(this.toJson()),
     );
     if (response.statusCode == 200) {
-      result = Response.fromJson(json.decode(response.body));
+      result = ResponseModel.fromJson(json.decode(response.body));
+    } else {
+      throw Exception("Something Error");
+    }
+    return result;
+  }
+
+  Future<ResponseModel> stopPosition() async {
+    ResponseModel result;
+    final response = await http.post(
+      Config.api + "/point/unset",
+      body: json.encode(this.toJson()),
+    );
+    if (response.statusCode == 200) {
+      result = ResponseModel.fromJson(json.decode(response.body));
     } else {
       throw Exception("Something Error");
     }

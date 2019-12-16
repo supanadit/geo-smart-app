@@ -1,10 +1,15 @@
-class UniqueId {
+class UniqueIDModel {
   String id;
+  bool error = false;
 
-  UniqueId({this.id});
+  UniqueIDModel({this.id});
 
-  UniqueId.fromJson(Map<String, dynamic> json) {
+  UniqueIDModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
+  }
+
+  UniqueIDModel.error() {
+    error = true;
   }
 
   Map<String, dynamic> toJson() {
