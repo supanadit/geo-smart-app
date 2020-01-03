@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geo_app/bloc/setting.dart';
 import 'package:geo_app/bloc/unique_id_bloc.dart';
 import 'package:geo_app/config.dart';
@@ -40,30 +41,36 @@ class _SettingState extends State<Setting> {
 
       _hostController.text = this.host;
 
-      if (settingModel.isNullId()) {
-        print("Requesting Unique ID");
+      if (!settingModel.isNullHost()) {
         _uniqueIDBloc = new UniqueIDBloc(settingModel);
         _uniqueIDBloc.getUniqueID();
-      }
 
-      if (_uniqueIDBloc != null) {
-        this._uniqueIDBloc.subject.listen((uniqueId) {
-          print("Your Unique ID " + uniqueId.id.toString());
-          if (uniqueId.id != null && uniqueId.id != "") {
-            if (!settingModel.isNullId()) {
-              Navigator.of(context).pushReplacement(new MaterialPageRoute(
-                builder: (BuildContext context) => Map(),
-              ));
+        if (_uniqueIDBloc != null) {
+          this._uniqueIDBloc.subject.listen((uniqueId) {
+            print("Your Unique ID " + uniqueId.id.toString());
+            if (uniqueId.id != null && uniqueId.id != "") {
+              if (!settingModel.isNullId()) {
+                mapPage();
+              } else {
+                this._settingBloc.setSetting(
+                      new SettingModel(this._hostController.text, uniqueId.id),
+                    );
+                mapPage();
+              }
             } else {
-              this._settingBloc.setSetting(
-                    new SettingModel(this._hostController.text, uniqueId.id),
-                  );
+              Fluttertoast.showToast(msg: "Invalid host address");
             }
-          }
-        });
+          });
+        }
       }
     });
     super.initState();
+  }
+
+  mapPage() {
+    Navigator.of(context).pushReplacement(new MaterialPageRoute(
+      builder: (BuildContext context) => Map(),
+    ));
   }
 
   @override
@@ -92,13 +99,23 @@ class _SettingState extends State<Setting> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-                FlatButton(
-                  onPressed: () {
-                    this._settingBloc.setSetting(
-                          new SettingModel(this._hostController.text, null),
-                        );
-                  },
-                  child: Text("Save"),
+                SizedBox(
+                  height: 10.0,
+                ),
+                Container(
+                  width: double.infinity,
+                  child: FlatButton(
+                    color: Colors.blueAccent,
+                    onPressed: () {
+                      this._settingBloc.setSetting(
+                            new SettingModel(this._hostController.text, null),
+                          );
+                    },
+                    child: Text(
+                      "Save",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 )
               ],
             ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:background_location/background_location.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geo_app/bloc/position_bloc.dart';
 import 'package:geo_app/bloc/setting.dart';
 import 'package:geo_app/model/position.dart';
@@ -58,14 +59,18 @@ class _MapState extends State<Map> {
       this.host = settingModel.host;
 
       if (settingModel.isNullId()) {
-        Navigator.of(context).pushReplacement(new MaterialPageRoute(
-          builder: (BuildContext context) => Setting(),
-        ));
+        settingPage();
       }
 
       if (this.host != null && this.host != "") {
         setState(() {
           _positionBloc = new PositionBloc(settingModel);
+          _positionBloc.subject.listen((position) {
+            if (position.isError()) {
+              BackgroundLocation.stopLocationService();
+              settingPage();
+            }
+          });
         });
       }
     });
@@ -94,23 +99,21 @@ class _MapState extends State<Map> {
         );
       } else {
         BackgroundLocation.stopLocationService();
-        Navigator.of(context).pushReplacement(new MaterialPageRoute(
-          builder: (BuildContext context) => Setting(),
-        ));
+        settingPage();
       }
 
       if (this._position != null) {
         if (this._position.isValid()) {
-          print("Valid Position");
           if (_positionBloc != null) {
-            print("Send Position " +
-                this._position.lat.toString() +
-                ", " +
-                this._position.lng.toString());
             _positionBloc.sendPosition(
               this._position.lat.toString(),
               this._position.lng.toString(),
             );
+          } else {
+            Fluttertoast.showToast(
+              msg: "Failed to start position service",
+            );
+            settingPage();
           }
         } else {
           print("Invalid Position");
@@ -173,8 +176,16 @@ class _MapState extends State<Map> {
         isTracking = !isTracking;
       });
     } else {
-      print("Access Denied");
+      Fluttertoast.showToast(
+        msg: "Make sure you have turn on location services",
+      );
     }
+  }
+
+  settingPage() {
+    Navigator.of(context).pushReplacement(new MaterialPageRoute(
+      builder: (BuildContext context) => Setting(),
+    ));
   }
 
   @override

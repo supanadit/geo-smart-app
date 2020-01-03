@@ -1,4 +1,6 @@
 class ResponseModel {
+  final String errorMessage = "error";
+
   String status;
 
   ResponseModel({this.status});
@@ -8,7 +10,11 @@ class ResponseModel {
   }
 
   ResponseModel.fromNull() {
-    status = "Error";
+    status = errorMessage;
+  }
+
+  isError() {
+    return (status == errorMessage);
   }
 
   Map<String, dynamic> toJson() {
