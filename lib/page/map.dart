@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:geo_app/bloc/position_bloc.dart';
 import 'package:geo_app/bloc/setting.dart';
 import 'package:geo_app/model/position.dart';
+import 'package:geo_app/page/setting.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as bg;
 
 class Map extends StatefulWidget {
   Map({Key key, this.title}) : super(key: key);
@@ -33,10 +32,23 @@ class _MapState extends State<Map> {
   String id;
   String host;
 
+  bool isGranted = false;
+  bool isTracking = false;
+
   @override
   void initState() {
-    BackgroundLocation.startLocationService();
     super.initState();
+    BackgroundLocation.checkPermissions();
+    BackgroundLocation.getPermissions(
+      onDenied: () {
+        isGranted = false;
+        print("Denied");
+      },
+      onGranted: () {
+        isGranted = true;
+        print("Granted");
+      },
+    );
     _settingBloc = new SettingBloc();
 
     _settingBloc.getSetting();
@@ -45,51 +57,65 @@ class _MapState extends State<Map> {
       this.id = settingModel.id;
       this.host = settingModel.host;
 
+      if (settingModel.isNullId()) {
+        Navigator.of(context).pushReplacement(new MaterialPageRoute(
+          builder: (BuildContext context) => Setting(),
+        ));
+      }
+
       if (this.host != null && this.host != "") {
         setState(() {
           _positionBloc = new PositionBloc(settingModel);
         });
       }
     });
-    bg.BackgroundGeolocation.onLocation((bg.Location location) {
-      print('[location] - $location');
-    });
-    bg.BackgroundGeolocation.ready(
-      bg.Config(
-          desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-          distanceFilter: 10.0,
-          stopOnTerminate: false,
-          startOnBoot: true,
-          debug: true,
-          logLevel: bg.Config.LOG_LEVEL_VERBOSE),
-    ).then((bg.State state) {
-      if (!state.enabled) {
-        bg.BackgroundGeolocation.start();
-      }
-    });
-    BackgroundLocation.getLocationUpdates((location) async {
-      print("Location Update");
-      setState(() {
-        this.latitude = location.latitude;
-        this.longitude = location.longitude;
-        this.accuracy = location.accuracy;
-        this.altitude = location.altitude;
-        this.bearing = location.bearing;
-        this.speed = location.speed;
 
-        if (this._position != null) {
-          if (this._position.isValid()) {
-            print("VALID");
-            if (_positionBloc != null) {
-              print("SEND");
-              _positionBloc.sendPosition(
-                this._position.lat.toString(),
-                this._position.lng.toString(),
-              );
-            }
+    BackgroundLocation.getLocationUpdates((location) async {
+      if (!isTracking) {
+        this.isTracking = true;
+      }
+      if (!isGranted) {
+        this.isGranted = true;
+      }
+      print("Location Updated");
+      this.latitude = location.latitude;
+      this.longitude = location.longitude;
+      this.accuracy = location.accuracy;
+      this.altitude = location.altitude;
+      this.bearing = location.bearing;
+      this.speed = location.speed;
+
+      if (this.id != null) {
+        this._position = Position(
+          id: this.id,
+          lat: this.latitude.toString(),
+          lng: this.longitude.toString(),
+          type: "user",
+        );
+      } else {
+        BackgroundLocation.stopLocationService();
+        Navigator.of(context).pushReplacement(new MaterialPageRoute(
+          builder: (BuildContext context) => Setting(),
+        ));
+      }
+
+      if (this._position != null) {
+        if (this._position.isValid()) {
+          print("Valid Position");
+          if (_positionBloc != null) {
+            print("Send Position " +
+                this._position.lat.toString() +
+                ", " +
+                this._position.lng.toString());
+            _positionBloc.sendPosition(
+              this._position.lat.toString(),
+              this._position.lng.toString(),
+            );
           }
+        } else {
+          print("Invalid Position");
         }
-      });
+      }
     });
   }
 
@@ -110,17 +136,51 @@ class _MapState extends State<Map> {
             myLocationButtonEnabled: true,
             onMapCreated: (GoogleMapController controller) {
               _controller.complete(controller);
-              print("Map Created");
             },
           ),
+          Container(
+            child: Image.asset("assets/images/logo.png"),
+            width: 70,
+            height: 70,
+            alignment: Alignment.topLeft,
+            margin: EdgeInsets.only(left: 10.0),
+          ),
+          Container(
+            child: FlatButton(
+              color: (isTracking) ? Colors.redAccent : Colors.green,
+              onPressed: toggleTracking,
+              child: Text(
+                (isTracking) ? "Stop Tracking" : "Start Tracking",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            margin: EdgeInsets.only(bottom: 50.0),
+            alignment: Alignment.bottomCenter,
+          )
         ],
       ),
     );
   }
 
+  toggleTracking() {
+    if (isGranted) {
+      if (isTracking) {
+        BackgroundLocation.stopLocationService();
+      } else {
+        BackgroundLocation.startLocationService();
+      }
+      setState(() {
+        isTracking = !isTracking;
+      });
+    } else {
+      print("Access Denied");
+    }
+  }
+
   @override
   void dispose() {
-    BackgroundLocation.stopLocationService();
+    print("Disposed");
     super.dispose();
+    BackgroundLocation.stopLocationService();
   }
 }

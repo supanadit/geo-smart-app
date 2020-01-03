@@ -23,6 +23,7 @@ class PositionProvider {
       );
       return ResponseModel.fromJson(response.data);
     } on DioError catch (e) {
+      print(e);
       return ResponseModel.fromJson(e.response.data);
     }
   }

@@ -27,6 +27,7 @@ class SettingBloc {
     SharedPreferences sharedPreferences = await this.getSharedPreferences();
     _subject.sink.add(new SettingModel(
       sharedPreferences.getString(_host),
+      sharedPreferences.getString(_id),
     ));
   }
 

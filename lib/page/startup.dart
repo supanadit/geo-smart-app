@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geo_app/bloc/setting.dart';
 import 'package:geo_app/component/loader.dart';
-import 'package:geo_app/page/setting.dart';
 import 'package:geo_app/page/map.dart';
+import 'package:geo_app/page/setting.dart';
 
 class Startup extends StatefulWidget {
   @override
@@ -22,8 +22,7 @@ class _StartupState extends State<Startup> {
     _settingBloc.getSetting();
 
     _settingBloc.subject.listen((settingModel) {
-      if ((settingModel.host == "" || settingModel.host == null) &&
-          (settingModel.id == "" || settingModel.id == null)) {
+      if (settingModel.isNullHost() && settingModel.isNullId()) {
         Navigator.of(context).pushReplacement(new MaterialPageRoute(
           builder: (BuildContext context) => Setting(),
         ));

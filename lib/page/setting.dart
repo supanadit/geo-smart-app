@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geo_app/bloc/setting.dart';
 import 'package:geo_app/bloc/unique_id_bloc.dart';
+import 'package:geo_app/config.dart';
 import 'package:geo_app/model/setting.dart';
 import 'package:geo_app/page/map.dart';
 
@@ -25,23 +26,39 @@ class _SettingState extends State<Setting> {
 
     _settingBloc.getSetting();
 
+    if (!Config.dynamicHostSetting) {
+      _settingBloc.setSetting(new SettingModel(Config.api, null));
+    }
+
     _settingBloc.subject.listen((settingModel) {
-      this.id = settingModel.id;
-      this.host = settingModel.host;
+      if (!settingModel.isNullId()) {
+        this.id = settingModel.id;
+      }
+      if (!settingModel.isNullHost()) {
+        this.host = settingModel.host;
+      }
 
       _hostController.text = this.host;
 
-      if (this.host != null && this.host != "") {
+      if (settingModel.isNullId()) {
+        print("Requesting Unique ID");
         _uniqueIDBloc = new UniqueIDBloc(settingModel);
         _uniqueIDBloc.getUniqueID();
       }
 
       if (_uniqueIDBloc != null) {
         this._uniqueIDBloc.subject.listen((uniqueId) {
+          print("Your Unique ID " + uniqueId.id.toString());
           if (uniqueId.id != null && uniqueId.id != "") {
-            Navigator.of(context).pushReplacement(new MaterialPageRoute(
-              builder: (BuildContext context) => Map(),
-            ));
+            if (!settingModel.isNullId()) {
+              Navigator.of(context).pushReplacement(new MaterialPageRoute(
+                builder: (BuildContext context) => Map(),
+              ));
+            } else {
+              this._settingBloc.setSetting(
+                    new SettingModel(this._hostController.text, uniqueId.id),
+                  );
+            }
           }
         });
       }
@@ -78,7 +95,7 @@ class _SettingState extends State<Setting> {
                 FlatButton(
                   onPressed: () {
                     this._settingBloc.setSetting(
-                          new SettingModel(this._hostController.text),
+                          new SettingModel(this._hostController.text, null),
                         );
                   },
                   child: Text("Save"),
