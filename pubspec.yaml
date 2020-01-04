@@ -25,7 +25,6 @@ dependencies:
   cupertino_icons: ^0.1.2
   google_maps_flutter: ^0.5.21+15
   background_location: ^0.0.9
-  adhara_socket_io: ^0.4.1
   http: ^0.12.0+2
   json_serializable: ^3.2.3
   shared_preferences: ^0.5.6
