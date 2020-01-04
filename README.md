@@ -4,7 +4,7 @@
 This is the Mobile Application for [Geo Smart System](https://github.com/supanadit/geosmartsystem) and [Geo Smart Map](https://github.com/supanadit/geosmartmap)
 
 ## Show Case
-![Setting](http://supanadit.com/wp-content/uploads/2020/01/setting.jpeg)![Tracking](http://supanadit.com/wp-content/uploads/2020/01/tracking.jpeg)
+![Tracking](http://supanadit.com/wp-content/uploads/2020/01/tracking.jpeg)
 
 ## Requirements
 - Flutter
