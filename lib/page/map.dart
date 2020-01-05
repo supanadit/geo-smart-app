@@ -130,9 +130,9 @@ class _MapState extends State<Map> {
                 print("Invalid Position");
               }
             }
-            setState(() {
-              isChecking = false;
-            });
+          });
+          setState(() {
+            isChecking = false;
           });
         }
         if (sdkInt <= 21) {
