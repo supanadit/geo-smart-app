@@ -23,7 +23,7 @@ class PositionBloc {
     _subject.sink.add(response);
   }
 
-  stopTracking(String lat, String lng) async {
+  stopTracking() async {
     ResponseModel response = await _repository.stopTracking();
     _subject.sink.add(response);
   }
