@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
-import 'package:geo_app/model/setting.dart';
-import 'package:geo_app/model/unique_id_model.dart';
+import 'package:geosmart/model/setting.dart';
+import 'package:geosmart/model/unique_id_model.dart';
 
-class UniqueIDProvider {
+class UniqueIDService {
   final String _endpoint = "/id/get/unique";
   final Dio _dio = Dio();
   SettingModel _settingModel;
 
-  UniqueIDProvider(this._settingModel);
+  UniqueIDService(this._settingModel);
 
   Future<UniqueIDModel> getUniqueID() async {
     try {

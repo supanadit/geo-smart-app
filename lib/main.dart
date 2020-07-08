@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geo_app/page/startup.dart';
+import 'package:geosmart/page/startup.dart';
 
 void main() => runApp(MyApp());
 

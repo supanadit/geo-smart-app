@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:geo_app/config.dart';
-import 'package:geo_app/model/response.dart';
-import 'package:geo_app/model/unique_id_model.dart';
+import 'package:geosmart/config.dart';
+import 'package:geosmart/model/response.dart';
+import 'package:geosmart/model/unique_id_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

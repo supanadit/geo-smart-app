@@ -1,24 +1,25 @@
 import 'package:dio/dio.dart';
-import 'package:geo_app/model/position.dart';
-import 'package:geo_app/model/response.dart';
-import 'package:geo_app/model/setting.dart';
+import 'package:geosmart/model/position.dart';
+import 'package:geosmart/model/response.dart';
+import 'package:geosmart/service/setting_service.dart';
 
-class PositionProvider {
+class PositionService {
   final Dio _dio = Dio();
-  SettingModel _settingModel;
+  final SettingService _settingBloc = SettingService();
 
-  PositionProvider(this._settingModel);
+  PositionService();
 
   Future<ResponseModel> sendPosition(String lat, String lng) async {
+    var m = await _settingBloc.getSetting();
     Position position = new Position(
-      id: this._settingModel.id,
+      id: m.id,
       type: "user",
       lat: lat,
       lng: lng,
     );
     try {
       Response response = await _dio.post(
-        this._settingModel.host + "/point/set",
+        m.host + "/point/set",
         data: position.toJson(),
       );
       return ResponseModel.fromJson(response.data);
@@ -33,11 +34,12 @@ class PositionProvider {
   }
 
   Future<ResponseModel> stopTracking() async {
+    var m = await _settingBloc.getSetting();
     try {
       Response response = await _dio.post(
-        this._settingModel.host + "/point/unset",
+        m.host + "/point/unset",
         data: {
-          "id": this._settingModel.id,
+          "id": m.id,
           "type": "user",
         },
       );

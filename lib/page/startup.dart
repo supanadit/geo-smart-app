@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:geo_app/bloc/setting.dart';
-import 'package:geo_app/component/loader.dart';
-import 'package:geo_app/page/map.dart';
-import 'package:geo_app/page/setting.dart';
+import 'package:geosmart/component/loader.dart';
+import 'package:geosmart/page/map.dart';
+import 'package:geosmart/page/setting.dart';
+import 'package:geosmart/service/setting_service.dart';
 
 class Startup extends StatefulWidget {
   @override
@@ -13,15 +13,13 @@ class Startup extends StatefulWidget {
 }
 
 class _StartupState extends State<Startup> {
-  SettingBloc _settingBloc;
+  SettingService _settingService;
 
   @override
   void initState() {
-    _settingBloc = new SettingBloc();
+    _settingService = new SettingService();
 
-    _settingBloc.getSetting();
-
-    _settingBloc.subject.listen((settingModel) {
+    _settingService.getSetting().then((settingModel) {
       if (settingModel.isNullHost() && settingModel.isNullId()) {
         Navigator.of(context).pushReplacement(new MaterialPageRoute(
           builder: (BuildContext context) => Setting(),
@@ -32,7 +30,6 @@ class _StartupState extends State<Startup> {
         ));
       }
     });
-
     super.initState();
   }
 
@@ -58,7 +55,6 @@ class _StartupState extends State<Startup> {
 
   @override
   void dispose() {
-    _settingBloc.dispose();
     super.dispose();
   }
 }

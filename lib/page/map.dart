@@ -1,19 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:background_location/background_location.dart';
-import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geo_app/bloc/position_bloc.dart';
-import 'package:geo_app/bloc/setting.dart';
-import 'package:geo_app/model/position.dart';
-import 'package:geo_app/page/setting.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+import 'package:geosmart/model/position.dart';
+import 'package:geosmart/model/setting.dart';
+import 'package:geosmart/page/setting.dart';
+import 'package:geosmart/service/position_service.dart';
+import 'package:geosmart/service/setting_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as bg;
-import 'package:permission_handler/permission_handler.dart';
-import 'package:rxdart/rxdart.dart';
 
 class Map extends StatefulWidget {
   Map({Key key, this.title}) : super(key: key);
@@ -32,172 +27,74 @@ class _MapState extends State<Map> {
   double accuracy = 0.0;
   double bearing = 0.0;
   double speed = 0.0;
-  Position _position;
-  PositionBloc _positionBloc;
-  SettingBloc _settingBloc;
-  PublishSubject<bool> _checkDevice;
+  PositionService _positionService;
+  SettingService _settingService;
   bool isChecking = true;
+  Position _position;
 
   String id;
   String host;
 
   bool isGranted = false;
   bool isTracking = false;
-  int androidSDKVersion = 0;
-
-  _MapState() {
-    _checkDevice = PublishSubject<bool>();
-  }
-
-  getPermission() {
-    BackgroundLocation.getPermissions(
-      onDenied: () {
-        isGranted = false;
-        print("Denied");
-      },
-      onGranted: () {
-        isGranted = true;
-        print("Granted");
-      },
-    );
-  }
 
   @override
   void initState() {
     super.initState();
-    PermissionHandler()
-        .requestPermissions([PermissionGroup.location]).then((permissions) {
-      permissions.forEach((group, status) {
-        print("$group With Status $status");
-      });
+    setState(() {
+      isChecking = true;
     });
-    if (Platform.isAndroid) {
-      PermissionHandler()
-          .shouldShowRequestPermissionRationale(PermissionGroup.location)
-          .then((isShow) {
-        print("Is Show $isShow");
-      });
-      DeviceInfoPlugin().androidInfo.then((androidInfo) {
-        var release = androidInfo.version.release;
-        var sdkInt = androidInfo.version.sdkInt;
-        var manufacturer = androidInfo.manufacturer;
-        var model = androidInfo.model;
-        print('Android $release (SDK $sdkInt), $manufacturer $model');
-        androidSDKVersion = sdkInt;
-        if (sdkInt > 21) {
-          getPermission();
-          BackgroundLocation.getLocationUpdates((location) async {
-            print("Location Updated");
-            if (!isTracking) {
-              this.isTracking = true;
-            }
-            if (!isGranted) {
-              this.isGranted = true;
-            }
-            this.latitude = location.latitude;
-            this.longitude = location.longitude;
-            this.accuracy = location.accuracy;
-            this.altitude = location.altitude;
-            this.bearing = location.bearing;
-            this.speed = location.speed;
+    _settingService = new SettingService();
+    _positionService = new PositionService();
+    // geo.Geolocator()..forceAndroidLocationManager = true;
+    geo.Geolocator().checkGeolocationPermissionStatus().then(
+      (v) {
+        setState(() {
+          isGranted = true;
+        });
+        var geolocator = geo.Geolocator();
+        var locationOptions = geo.LocationOptions(
+          accuracy: geo.LocationAccuracy.high,
+        );
 
-            if (this.id != null) {
+        geolocator
+            .getPositionStream(locationOptions)
+            .listen((geo.Position position) {
+          if (this.id != null) {
+            setState(() {
               this._position = Position(
                 id: this.id,
-                lat: this.latitude.toString(),
-                lng: this.longitude.toString(),
+                lat: position.latitude.toString(),
+                lng: position.longitude.toString(),
                 type: "user",
               );
-            } else {
-              stopLocationService();
-              settingPage();
-            }
+            });
+          } else {
+            stopLocationService();
+            settingPage();
+          }
+          print(
+              "New position detected with lat ${position.latitude} and lng ${position.longitude}");
+          sendLastPosition();
+        });
 
-            if (this._position != null) {
-              if (this._position.isValid()) {
-                if (_positionBloc != null) {
-                  _positionBloc.sendPosition(
-                    this._position.lat.toString(),
-                    this._position.lng.toString(),
-                  );
-                } else {
-                  Fluttertoast.showToast(
-                    msg: "Failed to start position service",
-                  );
-                  settingPage();
-                }
-              } else {
-                print("Invalid Position");
-              }
-            }
-          });
-          setState(() {
-            isChecking = false;
-          });
-        }
-        if (sdkInt <= 21) {
-          bg.BackgroundGeolocation.onLocation((bg.Location location) {
-            print('[location] - $location');
-          });
+        _settingService.getSetting().then((v) {
+          this.id = v.id;
+          this.host = v.host;
 
-          bg.BackgroundGeolocation.onMotionChange((bg.Location location) {
-            print('[motionchange] - $location');
-          });
-
-          bg.BackgroundGeolocation.onProviderChange(
-              (bg.ProviderChangeEvent event) {
-            print('[providerchange] - $event');
-          });
-
-          bg.BackgroundGeolocation.ready(
-            bg.Config(
-              desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-              distanceFilter: 10.0,
-              stopOnTerminate: false,
-              startOnBoot: true,
-              debug: true,
-              logLevel: bg.Config.LOG_LEVEL_VERBOSE,
-            ),
-          ).then(
-            (bg.State state) {
-              if (!state.enabled) {
-                isGranted = true;
-                isChecking = false;
-              }
-            },
-          );
-        }
+          if (v.isNullId()) {
+            settingPage();
+          }
+        });
+      },
+    ).catchError((e) {
+      setState(() {
+        isGranted = false;
       });
-    } else {
-      getPermission();
+    }).whenComplete(() {
       setState(() {
         isChecking = false;
       });
-    }
-
-    _settingBloc = new SettingBloc();
-
-    _settingBloc.getSetting();
-
-    _settingBloc.subject.listen((settingModel) {
-      this.id = settingModel.id;
-      this.host = settingModel.host;
-
-      if (settingModel.isNullId()) {
-        settingPage();
-      }
-
-      if (this.host != null && this.host != "") {
-        setState(() {
-          _positionBloc = new PositionBloc(settingModel);
-          _positionBloc.subject.listen((position) {
-            if (position.isError()) {
-              stopLocationService();
-              settingPage();
-            }
-          });
-        });
-      }
     });
   }
 
@@ -233,7 +130,7 @@ class _MapState extends State<Map> {
               onPressed: toggleTracking,
               child: Text(
                 (isChecking)
-                    ? "Pleasewait"
+                    ? "Please wait"
                     : ((isTracking) ? "Stop Tracking" : "Start Tracking"),
                 style: TextStyle(color: Colors.white),
               ),
@@ -246,43 +143,28 @@ class _MapState extends State<Map> {
     );
   }
 
-  stopLocationService() {
-    if (androidSDKVersion > 21 || !Platform.isAndroid) {
-      BackgroundLocation.stopLocationService();
-    }
-    if (androidSDKVersion <= 21) {
-      bg.BackgroundGeolocation.stop();
-    }
-    if (_positionBloc != null) {
-      _positionBloc.stopTracking();
-    }
-  }
-
-  startLocationService() {
-    if (androidSDKVersion > 21 || !Platform.isAndroid) {
-      BackgroundLocation.startLocationService();
-    }
-    if (androidSDKVersion <= 21) {
-      bg.BackgroundGeolocation.start();
-    }
-  }
-
   toggleTracking() {
     if (!isChecking) {
       if (isGranted) {
         if (isTracking) {
           stopLocationService();
         } else {
-          startLocationService();
+          sendLastPosition();
         }
         setState(() {
           isTracking = !isTracking;
         });
       } else {
-        Fluttertoast.showToast(
+        FlutterToast.showToast(
           msg: "Make sure you have turn on location services",
         );
       }
+    }
+  }
+
+  stopLocationService() {
+    if (_positionService != null) {
+      _positionService.stopTracking();
     }
   }
 
@@ -292,9 +174,34 @@ class _MapState extends State<Map> {
     ));
   }
 
+  sendLastPosition() async {
+    SettingModel m = await _settingService.getSetting();
+    print("Prepare to Send last location with ID : ${m.id} to ${m.host}");
+    if (this._position != null) {
+      if (this._position.isValid()) {
+        if (_positionService != null) {
+          print("Lat ${_position.lat}, Lng ${_position.lng}");
+          if (isTracking) {
+            print("Send tracking location");
+            _positionService.sendPosition(
+              this._position.lat.toString(),
+              this._position.lng.toString(),
+            );
+          }
+        } else {
+          FlutterToast.showToast(
+            msg: "Failed to start position service",
+          );
+          settingPage();
+        }
+      } else {
+        print("Invalid Position");
+      }
+    }
+  }
+
   @override
   void dispose() {
-    print("Disposed");
     super.dispose();
     stopLocationService();
   }

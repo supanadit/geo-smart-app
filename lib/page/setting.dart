@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geo_app/bloc/setting.dart';
-import 'package:geo_app/bloc/unique_id_bloc.dart';
-import 'package:geo_app/config.dart';
-import 'package:geo_app/model/setting.dart';
-import 'package:geo_app/page/map.dart';
+import 'package:geosmart/config.dart';
+import 'package:geosmart/model/setting.dart';
+import 'package:geosmart/page/map.dart';
+import 'package:geosmart/service/setting_service.dart';
+import 'package:geosmart/service/unique_id_service.dart';
 
 class Setting extends StatefulWidget {
   @override
@@ -16,22 +16,20 @@ class Setting extends StatefulWidget {
 
 class _SettingState extends State<Setting> {
   final _hostController = TextEditingController();
-  SettingBloc _settingBloc;
-  UniqueIDBloc _uniqueIDBloc;
+  SettingService _settingBloc;
+  UniqueIDService _uniqueIDBloc;
   String id;
   String host;
 
   @override
   void initState() {
-    _settingBloc = new SettingBloc();
-
-    _settingBloc.getSetting();
+    _settingBloc = new SettingService();
 
     if (!Config.dynamicHostSetting) {
       _settingBloc.setSetting(new SettingModel(Config.api, null));
     }
 
-    _settingBloc.subject.listen((settingModel) {
+    _settingBloc.getSetting().then((settingModel) {
       if (!settingModel.isNullId()) {
         this.id = settingModel.id;
       }
@@ -42,11 +40,10 @@ class _SettingState extends State<Setting> {
       _hostController.text = this.host;
 
       if (!settingModel.isNullHost()) {
-        _uniqueIDBloc = new UniqueIDBloc(settingModel);
-        _uniqueIDBloc.getUniqueID();
+        _uniqueIDBloc = new UniqueIDService(settingModel);
 
         if (_uniqueIDBloc != null) {
-          this._uniqueIDBloc.subject.listen((uniqueId) {
+          this._uniqueIDBloc.getUniqueID().then((uniqueId) {
             print("Your Unique ID " + uniqueId.id.toString());
             if (uniqueId.id != null && uniqueId.id != "") {
               if (!settingModel.isNullId()) {
@@ -58,7 +55,7 @@ class _SettingState extends State<Setting> {
                 mapPage();
               }
             } else {
-              Fluttertoast.showToast(msg: "Invalid host address");
+              FlutterToast.showToast(msg: "Invalid host address");
             }
           });
         }
@@ -107,9 +104,48 @@ class _SettingState extends State<Setting> {
                   child: FlatButton(
                     color: Colors.blueAccent,
                     onPressed: () {
-                      this._settingBloc.setSetting(
+                      this
+                          ._settingBloc
+                          .setSetting(
                             new SettingModel(this._hostController.text, null),
-                          );
+                          )
+                          .then((settingModel) {
+                        if (!settingModel.isNullId()) {
+                          this.id = settingModel.id;
+                        }
+                        if (!settingModel.isNullHost()) {
+                          this.host = settingModel.host;
+                        }
+
+                        _hostController.text = this.host;
+
+                        if (!settingModel.isNullHost()) {
+                          _uniqueIDBloc = new UniqueIDService(settingModel);
+
+                          if (_uniqueIDBloc != null) {
+                            this._uniqueIDBloc.getUniqueID().then((uniqueId) {
+                              print("Your Unique ID " + uniqueId.id.toString());
+                              if (uniqueId.id != null && uniqueId.id != "") {
+                                if (!settingModel.isNullId()) {
+                                  mapPage();
+                                } else {
+                                  this._settingBloc.setSetting(
+                                        new SettingModel(
+                                          this._hostController.text,
+                                          uniqueId.id,
+                                        ),
+                                      );
+                                  mapPage();
+                                }
+                              } else {
+                                FlutterToast.showToast(
+                                  msg: "Invalid host address",
+                                );
+                              }
+                            });
+                          }
+                        }
+                      });
                     },
                     child: Text(
                       "Save",
