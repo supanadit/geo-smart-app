@@ -12,9 +12,7 @@ class SettingModel {
     return (this.id == "" || this.id == null);
   }
 
-  bool isNullHostId(String operator) {
-    return (operator == "and")
-        ? isNullHost() && isNullId()
-        : isNullHost() || isNullId();
+  bool isValid() {
+    return (!isNullHost() && !isNullId());
   }
 }

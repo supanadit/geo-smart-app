@@ -2,12 +2,15 @@ import 'package:dio/dio.dart';
 import 'package:geosmart/model/position.dart';
 import 'package:geosmart/model/response.dart';
 import 'package:geosmart/service/setting_service.dart';
+import 'package:meta/meta.dart';
 
 class PositionService {
-  final Dio _dio = Dio();
+  final Dio dio;
   final SettingService _settingBloc = SettingService();
 
-  PositionService();
+  PositionService({
+    @required this.dio,
+  });
 
   Future<ResponseModel> sendPosition(String lat, String lng) async {
     var m = await _settingBloc.getSetting();
@@ -18,25 +21,20 @@ class PositionService {
       lng: lng,
     );
     try {
-      Response response = await _dio.post(
+      Response response = await dio.post(
         m.host + "/point/set",
         data: position.toJson(),
       );
       return ResponseModel.fromJson(response.data);
     } on DioError catch (e) {
-      print(e.response);
-      if (e.response != null) {
-        return ResponseModel.fromJson(e.response.data);
-      } else {
-        return ResponseModel.fromNull();
-      }
+      throw (e);
     }
   }
 
   Future<ResponseModel> stopTracking() async {
     var m = await _settingBloc.getSetting();
     try {
-      Response response = await _dio.post(
+      Response response = await dio.post(
         m.host + "/point/unset",
         data: {
           "id": m.id,
@@ -45,7 +43,7 @@ class PositionService {
       );
       return ResponseModel.fromJson(response.data);
     } on DioError catch (e) {
-      return ResponseModel.fromJson(e.response.data);
+      throw (e);
     }
   }
 }
