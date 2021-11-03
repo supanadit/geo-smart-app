@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart' as geo;
+import 'package:geolocator/geolocator.dart';
 import 'package:geosmart/bloc/bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -27,34 +28,25 @@ class _MapPageState extends State<MapPage> {
     setState(() {
       isChecking = true;
     });
-    // geo.Geolocator()..forceAndroidLocationManager = true;
-    geo.Geolocator().checkGeolocationPermissionStatus().then(
-      (v) {
-        isGranted = true;
-        var geolocator = geo.Geolocator();
-        var locationOptions = geo.LocationOptions(
-          accuracy: geo.LocationAccuracy.high,
-        );
-
-        geolocator.getPositionStream(locationOptions).listen(
-          (geo.Position position) {
-            if (isTracking && isGranted) {
-              BlocProvider.of<PositionBloc>(context).add(
-                PositionSend(
-                  lat: position.latitude.toString(),
-                  lng: position.longitude.toString(),
-                ),
-              );
-            }
-          },
-        );
-      },
-    ).catchError((e) {
-      isGranted = false;
-    }).whenComplete(() {
+    Geolocator.checkPermission().then((value) {
       setState(() {
-        isChecking = false;
+        if (value != LocationPermission.deniedForever) {
+          setState(() {
+            isChecking = false;
+            isGranted = true;
+          });
+        }
       });
+    });
+    Geolocator.getPositionStream().listen((Position position) {
+      if (isTracking && isGranted) {
+        BlocProvider.of<PositionBloc>(context).add(
+          PositionSend(
+            lat: position.latitude.toString(),
+            lng: position.longitude.toString(),
+          ),
+        );
+      }
     });
   }
 

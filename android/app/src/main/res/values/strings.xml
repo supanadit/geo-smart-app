@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Geo Smart App</string>
-    <string name="api_key">AIzaSyCjhBV5aq1gsTCYsr6QCCxYusFlBa3DEMs</string>
+    <string name="api_key">YOUR_API_KEY</string>
 </resources>
