@@ -1,5 +1,5 @@
 class Config {
-  static const String api = "http://api.geosmart.supanadit.com";
+  static const String api = "https://api.geosmart.supanadit.com";
   static const bool dynamicHostSetting = false;
-  static const bool showInterceptor = true;
+  static const bool showInterceptor = false;
 }

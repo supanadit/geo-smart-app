@@ -1,4 +1,4 @@
-import 'package:alice/alice.dart';
+// import 'package:alice/alice.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geosmart/bloc/authentication/authentication_event.dart';
@@ -8,11 +8,11 @@ import 'package:meta/meta.dart';
 
 class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
-  final Alice alice;
+  // final Alice alice;
   final Dio dio;
 
   AuthenticationBloc({
-    @required this.alice,
+    // @required this.alice,
     @required this.dio,
   }) : super(AuthenticationInitial());
 

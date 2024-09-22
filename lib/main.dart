@@ -1,4 +1,4 @@
-import 'package:alice/alice.dart';
+// import 'package:alice/alice.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,16 +11,16 @@ import 'bloc/bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final Alice alice = Alice(showNotification: Config.showInterceptor);
+  // final Alice alice = Alice(showNotification: Config.showInterceptor);
   final Dio dio = Dio();
-  dio.interceptors.add(alice.getDioInterceptor());
+  // dio.interceptors.add(alice.getDioInterceptor());
 
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthenticationBloc>(
           create: (context) => AuthenticationBloc(
-            alice: alice,
+            // alice: alice,
             dio: dio,
           )..add(AuthenticationStarted()),
         ),
@@ -49,9 +49,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Geo Smart App',
-      navigatorKey: BlocProvider.of<AuthenticationBloc>(
-        context,
-      ).alice.getNavigatorKey(),
+      // navigatorKey: BlocProvider.of<AuthenticationBloc>(
+      //   context,
+      // ).alice.getNavigatorKey(),
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
