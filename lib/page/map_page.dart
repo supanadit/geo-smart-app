@@ -37,6 +37,7 @@ class _MapPageState extends State<MapPage> {
         }
       });
     });
+
     Geolocator.getPositionStream().listen((Position position) {
       if (isTracking && isGranted) {
         BlocProvider.of<PositionBloc>(context).add(
@@ -85,13 +86,15 @@ class _MapPageState extends State<MapPage> {
                   },
                 ),
                 Container(
-                  child: Image.asset("assets/images/logo.png"),
                   width: 70,
                   height: 70,
                   alignment: Alignment.topLeft,
                   margin: EdgeInsets.only(left: 10.0),
+                  child: Image.asset("assets/images/logo.png"),
                 ),
                 Container(
+                  margin: EdgeInsets.only(bottom: 50.0),
+                  alignment: Alignment.bottomCenter,
                   child: TextButton(
                     style: TextButton.styleFrom(
                       backgroundColor: (state is PositionTrackingStarted)
@@ -119,8 +122,6 @@ class _MapPageState extends State<MapPage> {
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  margin: EdgeInsets.only(bottom: 50.0),
-                  alignment: Alignment.bottomCenter,
                 )
               ],
             );
